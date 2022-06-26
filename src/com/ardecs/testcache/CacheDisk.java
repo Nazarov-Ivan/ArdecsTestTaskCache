@@ -144,7 +144,7 @@ public class CacheDisk implements Cache{
             objectOutputStream.close();
             fileOutputStream = new FileOutputStream(fileNameHelp);
             objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            if (typeOfStrategy.equals("LFU")) {
+            if (typeOfStrategy.equals("LRU")) {
                 objectOutputStream.writeObject(mapCountOfUsing);
             } else {
                 objectOutputStream.writeObject(listAgeOfUsing);
