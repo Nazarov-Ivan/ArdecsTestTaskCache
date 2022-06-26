@@ -38,6 +38,7 @@ public class CacheRAM implements Cache{
                                     " и его значение " +  mapCache.get(keyForDelete) + " удалены");
                             mapCache.remove(keyForDelete);
                             mapCountOfUsing.remove(keyForDelete);
+                            break;
                         }
                     }
                 }
@@ -52,6 +53,7 @@ public class CacheRAM implements Cache{
             }
             listAgeOfUsing.addLast(key);
             mapCache.put(key, value);
+            break;
             case "LRU": listAgeOfUsing.remove(key);
                 while (listAgeOfUsing.size() >= this.sizeOfCache){
                 Object keyForDelete = listAgeOfUsing.removeLast();
@@ -77,7 +79,7 @@ public class CacheRAM implements Cache{
                     mapCountOfUsing.put(key, countOfUse);
                     return mapCache.get(key);
                 } break;
-            case "MRU":  if(mapCache.containsKey(key)) {
+            case "MRU":  if(listAgeOfUsing.contains(key)) {
                 return mapCache.get(key);
             }break;
                 case "LRU": if (listAgeOfUsing.remove(key)){
