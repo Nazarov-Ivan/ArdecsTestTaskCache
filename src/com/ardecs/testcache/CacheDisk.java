@@ -62,6 +62,18 @@ public class CacheDisk implements Cache{
                 }
                 mapCache.put(key, value);
                 mapCountOfUsing.put(key,1);
+                try {
+                    FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                    objectOutputStream.writeObject(mapCache);
+                    objectOutputStream.close();
+                    fileOutputStream = new FileOutputStream(fileNameHelp);
+                    objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                    objectOutputStream.writeObject(mapCountOfUsing);
+                    objectOutputStream.close();
+                } catch (IOException e) {
+                    System.out.println("Ошибка ввода-вывода");
+                }
                 break;
             case "MRU": while (listAgeOfUsing.size() >= this.sizeOfCache){
                 Object keyForDelete = listAgeOfUsing.removeLast();
@@ -71,6 +83,18 @@ public class CacheDisk implements Cache{
             }
                 listAgeOfUsing.addLast(key);
                 mapCache.put(key, value);
+                try {
+                    FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                    objectOutputStream.writeObject(mapCache);
+                    objectOutputStream.close();
+                    fileOutputStream = new FileOutputStream(fileNameHelp);
+                    objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                    objectOutputStream.writeObject(listAgeOfUsing);
+                    objectOutputStream.close();
+                } catch (IOException e) {
+                    System.out.println("Ошибка ввода-вывода");
+                }
                 break;
             case "LRU": listAgeOfUsing.remove(key);
                 while (listAgeOfUsing.size() >= this.sizeOfCache){
@@ -81,15 +105,50 @@ public class CacheDisk implements Cache{
                 }
                 listAgeOfUsing.addFirst(key);
                 mapCache.put(key, value);
+                try {
+                    FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                    objectOutputStream.writeObject(mapCache);
+                    objectOutputStream.close();
+                    fileOutputStream = new FileOutputStream(fileNameHelp);
+                    objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                    objectOutputStream.writeObject(listAgeOfUsing);
+                    objectOutputStream.close();
+                } catch (IOException e) {
+                    System.out.println("Ошибка ввода-вывода");
+                }
                 break;
 
         }
-        uploadToDisk();
     }
 
     @Override
     public Object get(String key) {
-        downloadFromDisk();
+        try {
+            FileInputStream fileInputStream = new FileInputStream(fileName);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            HashMap<String, String> mapFromDisk = (HashMap<String, String>) objectInputStream.readObject();
+            objectInputStream.close();
+            mapCache = mapFromDisk;
+            fileInputStream = new FileInputStream(fileNameHelp);
+            objectInputStream = new ObjectInputStream(fileInputStream);
+            if (typeOfStrategy.equals("LFU")) {
+                HashMap<String, Integer> mapCount = (HashMap<String, Integer>) objectInputStream.readObject();
+                if (mapCount != null) {
+                    mapCountOfUsing = mapCount;
+                }
+            } else {
+                listAgeOfUsing = (LinkedList<String>) objectInputStream.readObject();
+            }
+            objectInputStream.close();
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Файл не создан");
+        } catch (IOException e) {
+            System.out.println("Диск пуст");
+        } catch (ClassNotFoundException e) {
+            System.out.println("Класс не был найден");
+        }
         if (mapCache.size() == 0) {
             return null;
         } else {
@@ -99,7 +158,18 @@ public class CacheDisk implements Cache{
                         int countOfUse = mapCountOfUsing.get(key);
                         countOfUse++;
                         mapCountOfUsing.put(key, countOfUse);
-                        uploadToDisk();
+                        try {
+                            FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                            objectOutputStream.writeObject(mapCache);
+                            objectOutputStream.close();
+                            fileOutputStream = new FileOutputStream(fileNameHelp);
+                            objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                            objectOutputStream.writeObject(mapCountOfUsing);
+                            objectOutputStream.close();
+                        } catch (IOException e) {
+                            System.out.println("Ошибка ввода-вывода");
+                        }
                         return mapCache.get(key);
                     } break;
                 case "MRU":  if(listAgeOfUsing.contains(key)) {
@@ -107,7 +177,18 @@ public class CacheDisk implements Cache{
                 }break;
                 case "LRU": if (listAgeOfUsing.remove(key)){
                     listAgeOfUsing.addFirst(key);
-                    uploadToDisk();
+                    try {
+                        FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                        objectOutputStream.writeObject(mapCache);
+                        objectOutputStream.close();
+                        fileOutputStream = new FileOutputStream(fileNameHelp);
+                        objectOutputStream = new ObjectOutputStream(fileOutputStream);
+                        objectOutputStream.writeObject(listAgeOfUsing);
+                        objectOutputStream.close();
+                    } catch (IOException e) {
+                        System.out.println("Ошибка ввода-вывода");
+                    }
                     return mapCache.get(key);
                 }break;
 
@@ -118,6 +199,9 @@ public class CacheDisk implements Cache{
 
     @Override
     public void allDelete() {
+        mapCache.clear();
+        listAgeOfUsing.clear();
+        mapCountOfUsing.clear();
         mapCache = new HashMap<>(sizeOfCache);
         mapCountOfUsing = new HashMap<>(sizeOfCache);
         listAgeOfUsing = new LinkedList<>();
@@ -138,49 +222,4 @@ public class CacheDisk implements Cache{
         System.out.println("Кеш очищен");
     }
 
-    public void uploadToDisk(){
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(fileName);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            objectOutputStream.writeObject(mapCache);
-            objectOutputStream.close();
-            fileOutputStream = new FileOutputStream(fileNameHelp);
-            objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            if (typeOfStrategy.equals("LFU")) {
-                objectOutputStream.writeObject(mapCountOfUsing);
-            } else {
-                objectOutputStream.writeObject(listAgeOfUsing);
-            }
-            objectOutputStream.close();
-        } catch (IOException e) {
-            System.out.println("Произошла ошибка ввода-вывода");
-        }
-    }
-    public void downloadFromDisk(){
-        try {
-            FileInputStream fileInputStream = new FileInputStream(fileName);
-            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-            HashMap<String, String> mapFromDisk = (HashMap<String, String>) objectInputStream.readObject();
-            objectInputStream.close();
-            mapCache = mapFromDisk;
-            fileInputStream = new FileInputStream(fileNameHelp);
-            objectInputStream = new ObjectInputStream(fileInputStream);
-            if (typeOfStrategy.equals("LFU")) {
-                HashMap<String, Integer> mapCount = (HashMap<String, Integer>) objectInputStream.readObject();
-                if (mapCount != null) {
-                    mapCountOfUsing = mapCount;
-                }
-            } else {
-                listAgeOfUsing = (LinkedList<String>) objectInputStream.readObject();
-            }
-            objectInputStream.close();
-
-        } catch (FileNotFoundException e) {
-            System.out.println("Файл не найден");
-        } catch (IOException e) {
-            System.out.println("Диск был пуст");
-        } catch (ClassNotFoundException e) {
-            System.out.println("Необходимый класс не был найден");
-        }
-    }
 }

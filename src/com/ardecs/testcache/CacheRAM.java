@@ -92,6 +92,9 @@ public class CacheRAM implements Cache{
         return null;
     };
     public void allDelete(){
+        mapCache.clear();
+        listAgeOfUsing.clear();
+        mapCountOfUsing.clear();
         mapCache = new HashMap<>(sizeOfCache);
         mapCountOfUsing = new HashMap<>(sizeOfCache);
         listAgeOfUsing = new LinkedList<>();
