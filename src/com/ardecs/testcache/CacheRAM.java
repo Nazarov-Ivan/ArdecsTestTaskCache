@@ -27,9 +27,7 @@ public class CacheRAM implements Cache{
                     List<Integer> listValuesCountOfUsing = new ArrayList<>(mapCountOfUsing.values());
                     int minNumberOfUse = listValuesCountOfUsing.get(0);
                     for (int i = 1; i < listValuesCountOfUsing.size(); i++){
-                        if(minNumberOfUse >= listValuesCountOfUsing.get(i)){
-                            minNumberOfUse = listValuesCountOfUsing.get(i);
-                        }
+                        minNumberOfUse = listValuesCountOfUsing.get(i).compareTo(minNumberOfUse);
                     }
                     List<String> listOfMapCountKeys = new ArrayList<>(mapCountOfUsing.keySet());
                     for (String keyForDelete : listOfMapCountKeys){
